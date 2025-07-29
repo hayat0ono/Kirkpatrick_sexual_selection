@@ -105,7 +105,7 @@ def plot_results(results, v1, v2, save_dir=None):
     plt.show()
     plt.close()
 
-N = 1000
+N = 131072
 male_female_ratio = 0.5
 male_death_prob = 0.0
 s_ratio = 0.2
@@ -115,7 +115,7 @@ a1_coeff = 2.0
 end_time = 500
 lifetime = 1
 num_child = 2
-mutation_rate = 0.001
+mutation_rate = 0.00001
 
 initial_values = [
     (0.0, 0.6),
