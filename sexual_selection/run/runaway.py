@@ -1,6 +1,5 @@
 # 数個の初期値からGAシミュレーションを実行し、ランナウェイ効果を確認する
 
-import random
 from pathlib import Path
 import sys
 import os
