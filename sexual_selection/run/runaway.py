@@ -106,7 +106,7 @@ def plot_results(results, v1, v2, save_dir=None):
     plt.show()
     plt.close()
 
-N = 1310
+N = 13107
 male_female_ratio = 0.5
 male_death_prob = 0.0
 s_ratio = 0.2
