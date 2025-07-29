@@ -96,6 +96,7 @@ def plot_results(results, v1, v2, save_dir=None):
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.xlim(0, end_time)
+    plt.ylim(0, 1.0)
     plt.tight_layout()
 
     if save_dir:
