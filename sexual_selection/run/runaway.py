@@ -13,17 +13,18 @@ from model import Model
 def run_simulation(t1_initial, p1_initial):
     model = Model(N, male_female_ratio, t1_initial, p1_initial, male_death_prob, s_ratio, female_death_prob, a0_coeff, a1_coeff, end_time, lifetime, num_child, mutation_rate)
     model.build_objects()
+    initial_male_count = model.count_t_male(0) + model.count_t_male(1)
     result_t1_vs_p1 = set()
-    result_male_count = set()
+    result_male_servive_rate = set()
     while model.check_to_stop():
         if model.time % 50 == 0:
             t1_ratio = model.get_t1_ratio()
             p1_ratio = model.get_p1_ratio()
             result_t1_vs_p1.add((model.time, t1_ratio, p1_ratio))
         male_count = model.count_t_male(0) + model.count_t_male(1)
-        result_male_count.add((model.time, male_count))
+        result_male_servive_rate.add((model.time, male_count / initial_male_count))
         model.step()
-    return result_t1_vs_p1, result_male_count
+    return result_t1_vs_p1, result_male_servive_rate
 
 def plot_results(results, v1, v2, save_dir=None):
     """
@@ -34,23 +35,23 @@ def plot_results(results, v1, v2, save_dir=None):
     save_dir.mkdir(parents=True, exist_ok=True)
 
     results_plt_t1_vs_p1 = []
-    results_plt_male_count = []
+    results_plt_male_servive_rate = []
 
-    for result_t1_vs_p1, result_male_count in results:
+    for result_t1_vs_p1, result_male_servive_rate, p1_initial in results:
         sorted_result_t1_vs_p1 = sorted(result_t1_vs_p1, key=lambda x: x[0])
-        sorted_result_male_count = sorted(result_male_count, key=lambda x: x[0])
+        sorted_result_male_servive_rate = sorted(result_male_servive_rate, key=lambda x: x[0])
         t1_ratios = [r[1] for r in sorted_result_t1_vs_p1]
         p1_ratios = [r[2] for r in sorted_result_t1_vs_p1]
-        generations = [r[0] for r in sorted_result_male_count]
-        male_counts = [r[1] for r in sorted_result_male_count]
-        results_plt_t1_vs_p1.append((t1_ratios, p1_ratios))
-        results_plt_male_count.append((generations, male_counts))
+        generations = [r[0] for r in sorted_result_male_servive_rate]
+        male_servive_rates = [r[1] for r in sorted_result_male_servive_rate]
+        results_plt_t1_vs_p1.append((t1_ratios, p1_ratios, p1_initial))
+        results_plt_male_servive_rate.append((generations, male_servive_rates, p1_initial))
 
     plt.figure(figsize=(10, 8))
-    for i, (t1_ratios, p1_ratios) in enumerate(results_plt_t1_vs_p1):
+    for t1_ratios, p1_ratios, p1_initial in results_plt_t1_vs_p1:
         plt.scatter(p1_ratios, t1_ratios, alpha=0.7, s=50, marker='s', 
                      facecolors='none', edgecolors='black', linewidth=1.5)
-        plt.plot(p1_ratios, t1_ratios)
+        plt.plot(p1_ratios, t1_ratios, label=f'Initial P1: {p1_initial}')
     
     # display theoretical equilibrium values
     p1_range = np.linspace(0, 1, 100)
@@ -87,13 +88,14 @@ def plot_results(results, v1, v2, save_dir=None):
     plt.close()
 
     plt.figure(figsize=(10, 8))
-    for i, (generations, male_counts) in enumerate(results_plt_male_count):
-        plt.plot(generations, male_counts)
+    for generations, male_servive_rates, p1_initial in results_plt_male_servive_rate:
+        plt.plot(generations, male_servive_rates, label=f'Initial P1: {p1_initial}')
     
     plt.xlabel('Generation')
-    plt.ylabel('Male Count')
-    plt.title('Male Count vs Generation')
+    plt.ylabel('Male Servive Rate')
+    plt.title('Male Servive Rate vs Generation')
     plt.grid(True, alpha=0.3)
+    plt.legend()
     plt.xlim(0, end_time)
     plt.tight_layout()
 
@@ -126,7 +128,7 @@ initial_values = [
 results = []
 for t1_initial, p1_initial in initial_values:
     result_t1_vs_p1, result_male_count = run_simulation(t1_initial, p1_initial)
-    results.append((result_t1_vs_p1, result_male_count))
+    results.append((result_t1_vs_p1, result_male_count, p1_initial))
 
 v1 = (a0_coeff + s_ratio - 1) / ((a0_coeff * a1_coeff - 1) * (1.0 - s_ratio))
 v2 = a1_coeff * (a0_coeff + s_ratio - 1) / (a0_coeff * a1_coeff - 1)
